@@ -6,7 +6,6 @@ import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Send, Bot, User, Trash2, RefreshCw } from "lucide-react"
 
@@ -139,7 +138,6 @@ export default function Chatbot() {
       },
       body: JSON.stringify({
         message: userMessage,
-        model: "gpt-4o-mini", // or gpt-4o for better responses
       }),
     })
 
@@ -169,17 +167,11 @@ export default function Chatbot() {
     addMessage(userMessage, "user")
 
     try {
-      // TODO: Replace this with actual LLM API call
-      // Example integration points:
-      // - OpenAI GPT API: https://api.openai.com/v1/chat/completions
-      // - Google Gemini API: https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent
-      // - Anthropic Claude API: https://api.anthropic.com/v1/messages
-
       const aiResponse = await simulateAIResponse(userMessage)
       addMessage(aiResponse, "assistant")
     } catch (error) {
       console.error("Error getting AI response:", error)
-      addMessage("I'm sorry, I encountered an error. Please try again later.", "assistant")
+      addMessage("I'm sorry, I encountered an error. Please check your API key configuration.", "assistant")
     } finally {
       setIsLoading(false)
     }
@@ -261,9 +253,6 @@ export default function Chatbot() {
               <CardTitle className="flex items-center space-x-2">
                 <Bot className="w-5 h-5" />
                 <span>AI Study Assistant</span>
-                <Badge variant="secondary" className="text-xs">
-                  Demo Mode
-                </Badge>
               </CardTitle>
               <CardDescription>
                 Your personal AI assistant for studying and productivity
@@ -281,9 +270,6 @@ export default function Chatbot() {
                       <h3 className="text-lg font-medium">Welcome to your AI Study Assistant!</h3>
                       <p className="text-muted-foreground mt-2">
                         Ask me anything about studying, productivity, or academic topics.
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-4">
-                        Note: This is a demo interface. Connect your preferred AI API to enable full functionality.
                       </p>
                     </div>
                   </div>
@@ -359,21 +345,6 @@ export default function Chatbot() {
                   <Button onClick={handleSendMessage} disabled={!inputMessage.trim() || isLoading} size="sm">
                     <Send className="w-4 h-4" />
                   </Button>
-                </div>
-
-                {/* API Integration Instructions */}
-                <div className="mt-3 p-3 bg-muted rounded-lg">
-                  <h4 className="text-sm font-medium mb-2">🔧 API Integration Ready</h4>
-                  <p className="text-xs text-muted-foreground">
-                    To enable real AI responses, replace the <code>simulateAIResponse</code> function with your
-                    preferred LLM API:
-                  </p>
-                  <ul className="text-xs text-muted-foreground mt-2 space-y-1">
-                    <li>• OpenAI GPT API</li>
-                    <li>• Google Gemini API</li>
-                    <li>• Anthropic Claude API</li>
-                    <li>• Or any other LLM service</li>
-                  </ul>
                 </div>
               </div>
             </CardContent>
