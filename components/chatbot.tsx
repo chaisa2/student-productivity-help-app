@@ -131,6 +131,13 @@ export default function Chatbot() {
   }
 
   const simulateAIResponse = async (userMessage: string) => {
+    const currentSession = getCurrentSession()
+    const history =
+      currentSession?.messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })) || []
+
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: {
@@ -138,14 +145,16 @@ export default function Chatbot() {
       },
       body: JSON.stringify({
         message: userMessage,
+        history: history,
       }),
     })
 
+    const data = await response.json()
+
     if (!response.ok) {
-      throw new Error("Failed to get AI response")
+      throw new Error(data.error || "Failed to get AI response")
     }
 
-    const data = await response.json()
     return data.message
   }
 
@@ -171,7 +180,8 @@ export default function Chatbot() {
       addMessage(aiResponse, "assistant")
     } catch (error) {
       console.error("Error getting AI response:", error)
-      addMessage("I'm sorry, I encountered an error. Please check your API key configuration.", "assistant")
+      // Simplified error message without API key instructions
+      addMessage("I'm sorry, I encountered an error. Please try again.", "assistant")
     } finally {
       setIsLoading(false)
     }
