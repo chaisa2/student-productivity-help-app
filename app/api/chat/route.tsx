@@ -1,43 +1,67 @@
 import { type NextRequest, NextResponse } from "next/server"
+import ModelClient, { isUnexpected } from "@azure-rest/ai-inference";
+import { AzureKeyCredential } from "@azure/core-auth";
+
+const endpoint = "https://models.github.ai/inference";
+const model = "openai/gpt-4o";
 
 export async function POST(request: NextRequest) {
   try {
     const { message, history } = await request.json()
 
-    const apiKey = process.env.HUGGINGFACE_API_KEY
+    const apiKey = process.env["GITHUB_TOKEN"];
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: "HUGGINGFACE_API_KEY is not configured. Please add it to your environment variables." },
+        { error: "API key is not configured. Please add it to your environment variables." },
         { status: 500 },
       )
     }
 
-    const response = await fetch("https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        inputs: buildPrompt(message, history),
-        parameters: {
-          max_new_tokens: 500,
-          temperature: 0.7,
-          top_p: 0.95,
-          return_full_text: false,
-        },
-      }),
-    })
+    // const response = await fetch("https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2", {
+    //   method: "POST",
+    //   headers: {
+    //     Authorization: `Bearer ${apiKey}`,
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({
+    //     inputs: buildPrompt(message, history),
+    //     parameters: {
+    //       max_new_tokens: 500,
+    //       temperature: 0.7,
+    //       top_p: 0.95,
+    //       return_full_text: false,
+    //     },
+    //   }),
+    // })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error("[v0] Hugging Face API error:", errorText)
-      return NextResponse.json({ error: `Hugging Face API error: ${response.status}` }, { status: response.status })
+    const client = ModelClient(
+      endpoint,
+      new AzureKeyCredential(apiKey),
+    );
+
+    const response = await client.path("/chat/completions").post({
+      body: {
+        messages: [
+          { role:"system", content: "You are a helpful assistant." },
+          { role:"user", content: buildPrompt(message, history) }
+        ],
+        model: model
+      }
+    });
+
+    // if (!response.ok) {
+    //   const errorText = await response.text()
+    //   console.error("[v0] Hugging Face API error:", errorText)
+    //   return NextResponse.json({ error: `Hugging Face API error: ${response.status}` }, { status: response.status })
+    // }
+
+    if (isUnexpected(response)) {
+      throw response.body.error;
     }
 
-    const data = await response.json()
-    const text = data[0]?.generated_text || "I apologize, but I couldn't generate a response."
+    const data = response.body;
+    const text = data?.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response."
 
     return NextResponse.json({ message: text })
   } catch (error: any) {

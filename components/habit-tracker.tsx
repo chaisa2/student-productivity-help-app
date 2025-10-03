@@ -319,6 +319,8 @@ export default function HabitTracker() {
                           className={`w-6 h-6 rounded-full ${color} ${
                             newHabit.color === color ? "ring-2 ring-foreground ring-offset-2" : ""
                           }`}
+                          title={`Select color ${color.replace("bg-", "").replace("-500", "")}`}
+                          aria-label={`Select color ${color.replace("bg-", "").replace("-500", "")}`}
                         />
                       ))}
                     </div>
