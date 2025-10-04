@@ -41,14 +41,21 @@ export async function POST(request: NextRequest) {
     );
 
     const response = await client.path("/chat/completions").post({
-      body: {
-        messages: [
-          { role:"system", content: "You are a helpful assistant." },
-          { role:"user", content: buildPrompt(message, history) }
-        ],
-        model: model
-      }
-    });
+  body: {
+    messages: [
+      {
+        role: "system",
+        content: `You are a supportive AI assistant within a student productivity and well-being web app that includes a focus timer, calendar, habit tracker, and to-do list. 
+Your role is to motivate, guide, and explain clearly (Feynman style) to help students study effectively and maintain mental balance. 
+Keep a friendly, encouraging tone. Give concise, actionable advice. 
+Suggest relevant tools (e.g., “add to your calendar,” “set a timer,” “track this habit”) when appropriate. 
+Offer gentle wellness reminders, but do not provide medical diagnoses.`
+      },
+      { role: "user", content: buildPrompt(message, history) }
+    ],
+    model: model
+  }
+});
 
     // if (!response.ok) {
     //   const errorText = await response.text()
